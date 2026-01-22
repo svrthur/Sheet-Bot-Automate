@@ -42,14 +42,23 @@ export async function setupBot() {
       const campaigns: Record<string, string[]> = {};
       let lastRK = '';
 
-      for (const row of data) {
-        const rkVal = row['PK'] || row['RK'] || row['РК'];
-        const tkVal = row['TK'] || row['ТК'];
+      // Мы используем raw data для доступа по индексам колонок (A и B)
+      const rawData = xlsx.utils.sheet_to_json(sheet, { header: 1 }) as any[][];
 
-        if (rkVal) lastRK = String(rkVal).trim();
-        if (lastRK && tkVal) {
+      for (let i = 0; i < rawData.length; i++) {
+        const row = rawData[i];
+        if (!row || row.length === 0) continue;
+
+        const rkVal = row[0]; // Колонка A
+        const tkVal = row[1]; // Колонка B
+
+        if (rkVal !== undefined && rkVal !== null && String(rkVal).trim() !== '') {
+          lastRK = String(rkVal).trim();
+        }
+        
+        if (lastRK && tkVal !== undefined && tkVal !== null && String(tkVal).trim() !== '') {
           if (!campaigns[lastRK]) campaigns[lastRK] = [];
-          campaigns[lastRK].push(String(tkVal));
+          campaigns[lastRK].push(String(tkVal).trim());
         }
       }
 
