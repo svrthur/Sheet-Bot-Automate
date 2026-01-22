@@ -71,9 +71,22 @@ export async function setupBot() {
     ctx.reply('Сейчас я работаю в режиме диалога. Пожалуйста, используйте текстовые команды. Нажмите /start для начала.');
   });
 
-  bot.launch().catch(err => {
+  // Добавляем обработку корректного завершения, чтобы избежать 409 ошибок
+  const stopBot = () => {
+    console.log('Stopping bot...');
+    bot.stop();
+  };
+
+  process.once('SIGINT', stopBot);
+  process.once('SIGTERM', stopBot);
+
+  bot.launch({
+    dropPendingUpdates: true // Игнорируем накопившиеся сообщения при запуске
+  }).catch(err => {
     if (err.response?.error_code === 409) {
       console.log('Конфликт сессий (409). Попробуйте перезапустить workflow или подождите.');
+    } else {
+      console.error('Bot launch error:', err);
     }
   });
 }
