@@ -44,21 +44,31 @@ export async function setupBot() {
 
       // Мы используем raw data для доступа по индексам колонок (A и B)
       const rawData = xlsx.utils.sheet_to_json(sheet, { header: 1 }) as any[][];
-
+      
+      // Начинаем со второй строки (индекс 1), если первая строка - заголовок.
+      // Но чтобы быть надежными, просто проверяем каждую строку.
       for (let i = 0; i < rawData.length; i++) {
         const row = rawData[i];
         if (!row || row.length === 0) continue;
 
-        const rkVal = row[0]; // Колонка A
-        const tkVal = row[1]; // Колонка B
+        const rkVal = row[0]; // Колонка A (Номер строки в Google Таблице)
+        const tkVal = row[1]; // Колонка B (Номер ТК)
 
-        if (rkVal !== undefined && rkVal !== null && String(rkVal).trim() !== '') {
-          lastRK = String(rkVal).trim();
+        const rkStr = rkVal !== undefined && rkVal !== null ? String(rkVal).trim() : '';
+        const tkStr = tkVal !== undefined && tkVal !== null ? String(tkVal).trim() : '';
+
+        // Если в колонке A есть число, это новая группа РК
+        if (rkStr !== '' && !isNaN(Number(rkStr))) {
+          lastRK = rkStr;
         }
         
-        if (lastRK && tkVal !== undefined && tkVal !== null && String(tkVal).trim() !== '') {
+        // Если у нас есть текущий номер строки (lastRK) и есть ТК в колонке B
+        if (lastRK && tkStr !== '') {
           if (!campaigns[lastRK]) campaigns[lastRK] = [];
-          campaigns[lastRK].push(String(tkVal).trim());
+          // Избегаем ситуации, когда заголовок "ТК" попадает в список
+          if (tkStr.toLowerCase() !== 'тк' && tkStr.toLowerCase() !== 'tk') {
+            campaigns[lastRK].push(tkStr);
+          }
         }
       }
 
