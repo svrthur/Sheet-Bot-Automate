@@ -18,8 +18,8 @@ function highlightCampaigns(campaignData) {
   var sheet = ss.getSheets()[0];
   var data = sheet.getDataRange().getValues();
   
-  // Создаем карту для поиска строк. 
-  // На скриншоте РК в колонке A (индекс 0).
+  // Карта строк по колонке A (РК)
+  // Используем trim() и принудительное приведение к строке для надежности
   var rkRowMap = {};
   for (var i = 0; i < data.length; i++) {
     var rkValue = String(data[i][0]).trim();
@@ -28,19 +28,20 @@ function highlightCampaigns(campaignData) {
     }
   }
   
-  // Создаем карту для поиска колонок по первой строке (номера ТК).
+  // Карта колонок по первой строке в диапазоне R (17) - GN (195)
   var headers = data[0]; 
   var tkColMap = {};
-  for (var col = 0; col < headers.length; col++) {
+  for (var col = 17; col <= 195; col++) {
     var tkValue = String(headers[col]).trim();
     if (tkValue) {
+      // Сохраняем как строку для сравнения с данными из Excel
       tkColMap[tkValue] = col + 1;
     }
   }
 
   for (var rk in campaignData) {
     var tks = campaignData[rk];
-    var rowIndex = rkRowMap[rk];
+    var rowIndex = rkRowMap[String(rk).trim()];
     
     if (rowIndex) {
       for (var j = 0; j < tks.length; j++) {
@@ -48,7 +49,6 @@ function highlightCampaigns(campaignData) {
         var colIndex = tkColMap[tkNum];
         
         if (colIndex) {
-          // Закрашиваем ячейку
           sheet.getRange(rowIndex, colIndex).setBackground("#00ff00");
         }
       }
