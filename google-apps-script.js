@@ -14,16 +14,12 @@ function doPost(e) {
 }
 
 function highlightCampaigns(campaignData) {
-  // Использование SpreadsheetApp.openByUrl() более надежно в Web App
-  // ЗАМЕНИТЕ ссылку ниже на ссылку вашей таблицы, если SpreadsheetApp.getActiveSpreadsheet() возвращает null
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  // Используем ID вашей таблицы для прямого доступа
+  var spreadsheetId = "17VeQQWTGotofrpNbUHDhUFhCc3qjLdwoesTxDDfJ7h4";
+  var ss = SpreadsheetApp.openById(spreadsheetId);
   
   if (!ss) {
-    // Если скрипт запущен как веб-приложение от имени "Меня", 
-    // иногда getActiveSpreadsheet() может возвращать null.
-    // В этом случае можно попробовать открыть по ID (он есть в ссылке таблицы)
-    // var ss = SpreadsheetApp.openById("ID_ВАШЕЙ_ТАБЛИЦЫ");
-    throw new Error("Не удалось получить доступ к таблице. Убедитесь, что скрипт привязан к таблице или используйте openById.");
+    throw new Error("Не удалось получить доступ к таблице по ID: " + spreadsheetId);
   }
 
   var sheet = ss.getSheets()[0];
