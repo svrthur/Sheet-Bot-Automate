@@ -4,7 +4,7 @@ import { storage } from './storage';
 import axios from 'axios';
 
 // URL вашего развернутого Apps Script
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxY1y77KKo3GuNLwJYwv8kF3_TQlsjUWGt9NhelHxKHB1cnoqQoqqciGQ4YwwKkwSTq/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw5hSDc6RyanX7WviVf0emEuLrgIYJlhdxhWhoQlaho79NwYGwnj5yoa7icOW8dmXDP/exec';
 
 export async function setupBot() {
   if (!process.env.TELEGRAM_BOT_TOKEN) {
@@ -63,7 +63,7 @@ export async function setupBot() {
       }
 
       // Отправка данных в Apps Script (если URL настроен)
-      if (APPS_SCRIPT_URL !== 'ВАШ_URL_РАЗВЕРТЫВАНИЯ_APPS_SCRIPT') {
+      if (APPS_SCRIPT_URL !== 'https://script.google.com/macros/s/AKfycbw5hSDc6RyanX7WviVf0emEuLrgIYJlhdxhWhoQlaho79NwYGwnj5yoa7icOW8dmXDP/exec') {
         try {
           console.log('Sending to Apps Script:', JSON.stringify(campaigns));
           // Apps Script Redirects require following
