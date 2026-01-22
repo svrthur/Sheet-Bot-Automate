@@ -18,17 +18,17 @@ function highlightCampaigns(campaignData) {
   var sheet = ss.getSheets()[0];
   var data = sheet.getDataRange().getValues();
   
-  // Создаем карту для быстрого поиска строк по РК
+  // РК в колонке A (индекс 0)
   var rkRowMap = {};
   for (var i = 0; i < data.length; i++) {
-    var rkInSheet = String(data[i][1]).trim(); // РК находится в колонке B (индекс 1)
+    var rkInSheet = String(data[i][0]).trim();
     if (rkInSheet) {
       rkRowMap[rkInSheet] = i + 1;
     }
   }
   
-  // Получаем заголовки для поиска номеров ТК в колонках R-GN
-  var headers = data[0]; // Первая строка - заголовки
+  // Номера ТК в первой строке (индекс 0)
+  var headers = data[0]; 
   var tkColMap = {};
   for (var col = 17; col <= 195; col++) { // Колонки R (17) до GN (195)
     var tkNum = String(headers[col]).trim();
