@@ -1,3 +1,23 @@
+// 1. Вставьте этот код в Apps Script
+// 2. Разверните как ВЕБ-ПРИЛОЖЕНИЕ (Deploy -> New Deployment -> Web App)
+// 3. Выберите "Execute as: Me" и "Who has access: Anyone"
+// 4. Скопируйте полученный URL и вставьте его в server/bot.ts в переменную APPS_SCRIPT_URL
+
+function doPost(e) {
+  try {
+    var requestData = JSON.parse(e.postData.contents);
+    
+    if (requestData.action === 'highlight') {
+      highlightCampaigns(requestData.data);
+      return ContentService.createTextOutput(JSON.stringify({status: 'success'}))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({status: 'error', message: err.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
 function highlightCampaigns(campaignData) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheets()[0];

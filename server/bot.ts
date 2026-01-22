@@ -3,6 +3,9 @@ import * as xlsx from 'xlsx';
 import { storage } from './storage';
 import axios from 'axios';
 
+// URL вашего развернутого Apps Script
+const APPS_SCRIPT_URL = 'ВАШ_URL_РАЗВЕРТЫВАНИЯ_APPS_SCRIPT';
+
 export async function setupBot() {
   if (!process.env.TELEGRAM_BOT_TOKEN) {
     console.warn("TELEGRAM_BOT_TOKEN is not set.");
@@ -50,14 +53,25 @@ export async function setupBot() {
         }
       }
 
-      // Log the results so they appear on the dashboard
+      // Отправка данных в Apps Script (если URL настроен)
+      if (APPS_SCRIPT_URL !== 'ВАШ_URL_РАЗВЕРТЫВАНИЯ_APPS_SCRIPT') {
+        try {
+          await axios.post(APPS_SCRIPT_URL, {
+            action: 'highlight',
+            data: campaigns
+          });
+        } catch (e) {
+          console.error('Ошибка отправки в Apps Script:', e);
+        }
+      }
+
       await storage.createLog({
         level: 'success',
         message: `Файл ${fileName} обработан`,
         details: { campaigns }
       });
 
-      ctx.reply(`Обработано кампаний: ${Object.keys(campaigns).length}. Данные доступны в панели управления.`);
+      ctx.reply(`Обработано кампаний: ${Object.keys(campaigns).length}. Если вы настроили Apps Script URL в боте, таблица обновится.`);
 
     } catch (error: any) {
       ctx.reply('Ошибка при обработке файла.');
@@ -69,5 +83,9 @@ export async function setupBot() {
     }
   });
 
-  bot.launch();
+  bot.launch().catch(err => {
+    if (err.response?.error_code === 409) {
+      console.log('Конфликт сессий (409). Попробуйте перезапустить workflow или подождите.');
+    }
+  });
 }
