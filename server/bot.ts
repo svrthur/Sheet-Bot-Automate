@@ -73,7 +73,7 @@ export async function setupBot() {
       }
 
       // Отправка данных в Apps Script (если URL настроен)
-      if (APPS_SCRIPT_URL !== 'https://script.google.com/macros/s/AKfycbw5hSDc6RyanX7WviVf0emEuLrgIYJlhdxhWhoQlaho79NwYGwnj5yoa7icOW8dmXDP/exec') {
+      if (APPS_SCRIPT_URL !== 'ВАШ_URL_РАЗВЕРТЫВАНИЯ_APPS_SCRIPT') {
         try {
           console.log('Sending to Apps Script:', JSON.stringify(campaigns));
           // Apps Script Redirects require following
