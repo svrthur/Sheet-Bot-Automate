@@ -1,8 +1,3 @@
-// 1. Вставьте этот код в Apps Script
-// 2. Разверните как ВЕБ-ПРИЛОЖЕНИЕ (Deploy -> New Deployment -> Web App)
-// 3. Выберите "Execute as: Me" и "Who has access: Anyone"
-// 4. Скопируйте полученный URL и вставьте его в server/bot.ts в переменную APPS_SCRIPT_URL
-
 function doPost(e) {
   try {
     var requestData = JSON.parse(e.postData.contents);
@@ -23,14 +18,36 @@ function highlightCampaigns(campaignData) {
   var sheet = ss.getSheets()[0];
   var data = sheet.getDataRange().getValues();
   
+  // Создаем карту для быстрого поиска строк по РК
+  var rkRowMap = {};
+  for (var i = 0; i < data.length; i++) {
+    var rkInSheet = String(data[i][1]).trim(); // РК находится в колонке B (индекс 1)
+    if (rkInSheet) {
+      rkRowMap[rkInSheet] = i + 1;
+    }
+  }
+  
+  // Получаем заголовки для поиска номеров ТК в колонках R-GN
+  var headers = data[0]; // Первая строка - заголовки
+  var tkColMap = {};
+  for (var col = 17; col <= 195; col++) { // Колонки R (17) до GN (195)
+    var tkNum = String(headers[col]).trim();
+    if (tkNum) {
+      tkColMap[tkNum] = col + 1;
+    }
+  }
+
   for (var rk in campaignData) {
     var tks = campaignData[rk];
-    for (var i = 0; i < data.length; i++) {
-      if (String(data[i][0]).trim() == rk) {
-        for (var col = 17; col <= 195; col++) {
-          if (tks.indexOf(String(data[i][col]).trim()) !== -1) {
-            sheet.getRange(i + 1, col + 1).setBackground("#00ff00");
-          }
+    var rowIndex = rkRowMap[rk];
+    
+    if (rowIndex) {
+      for (var j = 0; j < tks.length; j++) {
+        var tkNumToFind = String(tks[j]).trim();
+        var colIndex = tkColMap[tkNumToFind];
+        
+        if (colIndex) {
+          sheet.getRange(rowIndex, colIndex).setBackground("#00ff00");
         }
       }
     }
