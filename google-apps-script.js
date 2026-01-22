@@ -18,22 +18,23 @@ function highlightCampaigns(campaignData) {
   var sheet = ss.getSheets()[0];
   var data = sheet.getDataRange().getValues();
   
-  // РК в колонке A (индекс 0)
+  // Создаем карту для поиска строк. 
+  // На скриншоте РК в колонке A (индекс 0).
   var rkRowMap = {};
   for (var i = 0; i < data.length; i++) {
-    var rkInSheet = String(data[i][0]).trim();
-    if (rkInSheet) {
-      rkRowMap[rkInSheet] = i + 1;
+    var rkValue = String(data[i][0]).trim();
+    if (rkValue) {
+      rkRowMap[rkValue] = i + 1;
     }
   }
   
-  // Номера ТК в первой строке (индекс 0)
+  // Создаем карту для поиска колонок по первой строке (номера ТК).
   var headers = data[0]; 
   var tkColMap = {};
-  for (var col = 17; col <= 195; col++) { // Колонки R (17) до GN (195)
-    var tkNum = String(headers[col]).trim();
-    if (tkNum) {
-      tkColMap[tkNum] = col + 1;
+  for (var col = 0; col < headers.length; col++) {
+    var tkValue = String(headers[col]).trim();
+    if (tkValue) {
+      tkColMap[tkValue] = col + 1;
     }
   }
 
@@ -43,10 +44,11 @@ function highlightCampaigns(campaignData) {
     
     if (rowIndex) {
       for (var j = 0; j < tks.length; j++) {
-        var tkNumToFind = String(tks[j]).trim();
-        var colIndex = tkColMap[tkNumToFind];
+        var tkNum = String(tks[j]).trim();
+        var colIndex = tkColMap[tkNum];
         
         if (colIndex) {
+          // Закрашиваем ячейку
           sheet.getRange(rowIndex, colIndex).setBackground("#00ff00");
         }
       }
