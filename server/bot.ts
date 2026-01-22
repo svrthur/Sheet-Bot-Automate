@@ -4,7 +4,7 @@ import { storage } from './storage';
 import axios from 'axios';
 
 // URL вашего развернутого Apps Script
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw5hSDc6RyanX7WviVf0emEuLrgIYJlhdxhWhoQlaho79NwYGwnj5yoa7icOW8dmXDP/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwiUcmCLIiK5US9Mvw8LO8SqPVRTsV6QRWnpSBuQDaFobg0t2CT8CYFDjRa0vlSCh4v/exec';
 
 export async function setupBot() {
   if (!process.env.TELEGRAM_BOT_TOKEN) {
