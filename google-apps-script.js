@@ -18,24 +18,28 @@ function highlightCampaigns(campaignData) {
   var sheet = ss.getSheets()[0];
   var data = sheet.getDataRange().getValues();
   
-  // Карта строк по колонке A (РК)
-  // Используем trim() и принудительное приведение к строке для надежности
+  // Карта строк по колонке A (РК / Название)
   var rkRowMap = {};
   for (var i = 0; i < data.length; i++) {
-    var rkValue = String(data[i][0]).trim();
-    if (rkValue) {
-      rkRowMap[rkValue] = i + 1;
+    var val = data[i][0];
+    if (val !== null && val !== undefined) {
+      var rkValue = String(val).trim();
+      if (rkValue) {
+        rkRowMap[rkValue] = i + 1;
+      }
     }
   }
   
-  // Карта колонок по первой строке в диапазоне R (17) - GN (195)
+  // Карта колонок по первой строке (номера ТК)
   var headers = data[0]; 
   var tkColMap = {};
-  for (var col = 17; col <= 195; col++) {
-    var tkValue = String(headers[col]).trim();
-    if (tkValue) {
-      // Сохраняем как строку для сравнения с данными из Excel
-      tkColMap[tkValue] = col + 1;
+  for (var col = 0; col < headers.length; col++) {
+    var val = headers[col];
+    if (val !== null && val !== undefined) {
+      var tkValue = String(val).trim();
+      if (tkValue) {
+        tkColMap[tkValue] = col + 1;
+      }
     }
   }
 
@@ -49,6 +53,7 @@ function highlightCampaigns(campaignData) {
         var colIndex = tkColMap[tkNum];
         
         if (colIndex) {
+          // Закрашиваем ячейку
           sheet.getRange(rowIndex, colIndex).setBackground("#00ff00");
         }
       }
