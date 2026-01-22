@@ -14,69 +14,32 @@ export async function setupBot() {
 
   const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 
+  const userState: Record<number, { step: string, row?: string }> = {};
+
   bot.start((ctx) => {
-    ctx.reply('Бот готов! Пришлите Excel файл для обработки.');
+    ctx.reply('Привет! Введите номер строки (например, 118 или A118), в которой нужно отметить ТК:');
+    userState[ctx.from.id] = { step: 'awaiting_row' };
   });
 
-  bot.on('document', async (ctx) => {
-    const doc = ctx.message.document;
-    const fileName = doc.file_name || 'file.xlsx';
-    
-    if (!fileName.endsWith('.xlsx') && !fileName.endsWith('.xls')) {
-      return ctx.reply('Пожалуйста, пришлите файл Excel (.xlsx или .xls).');
-    }
+  bot.on('text', async (ctx) => {
+    const state = userState[ctx.from.id];
+    if (!state) return;
 
-    try {
-      const fileLink = await ctx.telegram.getFileLink(doc.file_id);
-      const response = await axios({
-        url: fileLink.href,
-        method: 'GET',
-        responseType: 'arraybuffer'
-      });
-
-      const buffer = Buffer.from(response.data);
-      const workbook = xlsx.read(buffer, { type: 'buffer' });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const data = xlsx.utils.sheet_to_json(sheet) as any[];
-
-      const campaigns: Record<string, string[]> = {};
-      let lastRK = '';
-
-      // Мы используем raw data для доступа по индексам колонок (A и B)
-      const rawData = xlsx.utils.sheet_to_json(sheet, { header: 1 }) as any[][];
+    if (state.step === 'awaiting_row') {
+      state.row = ctx.message.text.trim();
+      state.step = 'awaiting_tks';
+      ctx.reply(`Принято: строка ${state.row}. Теперь введите номера ТК через запятую (например: 203, 227):`);
+    } else if (state.step === 'awaiting_tks') {
+      const tks = ctx.message.text.split(',').map(s => s.trim()).filter(s => s !== '');
+      const row = state.row!;
       
-      // Начинаем со второй строки (индекс 1), если первая строка - заголовок.
-      // Но чтобы быть надежными, просто проверяем каждую строку.
-      for (let i = 0; i < rawData.length; i++) {
-        const row = rawData[i];
-        if (!row || row.length === 0) continue;
+      delete userState[ctx.from.id];
 
-        const rkVal = row[0]; // Колонка A (Номер строки в Google Таблице)
-        const tkVal = row[1]; // Колонка B (Номер ТК)
+      const campaigns = { [row]: tks };
 
-        const rkStr = rkVal !== undefined && rkVal !== null ? String(rkVal).trim() : '';
-        const tkStr = tkVal !== undefined && tkVal !== null ? String(tkVal).trim() : '';
-
-        // Если в колонке A есть число, это новая группа РК
-        if (rkStr !== '' && !isNaN(Number(rkStr))) {
-          lastRK = rkStr;
-        }
-        
-        // Если у нас есть текущий номер строки (lastRK) и есть ТК в колонке B
-        if (lastRK && tkStr !== '') {
-          if (!campaigns[lastRK]) campaigns[lastRK] = [];
-          // Избегаем ситуации, когда заголовок "ТК" попадает в список
-          if (tkStr.toLowerCase() !== 'тк' && tkStr.toLowerCase() !== 'tk') {
-            campaigns[lastRK].push(tkStr);
-          }
-        }
-      }
-
-      // Отправка данных в Apps Script (если URL настроен)
       if (APPS_SCRIPT_URL !== 'ВАШ_URL_РАЗВЕРТЫВАНИЯ_APPS_SCRIPT') {
         try {
-          console.log('Sending to Apps Script:', JSON.stringify(campaigns));
-          // Apps Script Redirects require following
+          ctx.reply('Отправляю данные в таблицу...');
           const scriptRes = await axios.post(APPS_SCRIPT_URL, {
             action: 'highlight',
             data: campaigns
@@ -84,31 +47,28 @@ export async function setupBot() {
             headers: { 'Content-Type': 'application/json' },
             maxRedirects: 5
           });
-          console.log('Apps Script Response:', JSON.stringify(scriptRes.data));
-        } catch (e: any) {
-          console.error('Ошибка отправки в Apps Script:', e.message);
-          if (e.response) {
-            console.error('Response data:', JSON.stringify(e.response.data));
+          
+          if (scriptRes.data.status === 'success') {
+            ctx.reply('Готово! Ячейки в таблице отмечены.');
+          } else {
+            ctx.reply(`Ошибка от Google: ${scriptRes.data.message || 'неизвестная ошибка'}`);
           }
+        } catch (e: any) {
+          ctx.reply(`Ошибка при отправке: ${e.message}`);
         }
       }
 
       await storage.createLog({
         level: 'success',
-        message: `Файл ${fileName} обработан`,
+        message: `Текстовый ввод: строка ${row}, ТК: ${tks.join(', ')}`,
         details: { campaigns }
       });
-
-      ctx.reply(`Обработано кампаний: ${Object.keys(campaigns).length}. Если вы настроили Apps Script URL в боте, таблица обновится.`);
-
-    } catch (error: any) {
-      ctx.reply('Ошибка при обработке файла.');
-      await storage.createLog({
-        level: 'error',
-        message: `Ошибка файла ${fileName}`,
-        details: { error: error.message }
-      });
     }
+  });
+
+  bot.on('document', async (ctx) => {
+    // Сохраняем поддержку файлов на всякий случай
+    ctx.reply('Сейчас я работаю в режиме диалога. Пожалуйста, используйте текстовые команды. Нажмите /start для начала.');
   });
 
   bot.launch().catch(err => {
