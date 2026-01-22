@@ -18,7 +18,6 @@ function highlightCampaigns(campaignData) {
   var sheet = ss.getSheets()[0];
   var data = sheet.getDataRange().getValues();
   
-  // Карта строк по колонке A (РК / Название)
   var rkRowMap = {};
   for (var i = 0; i < data.length; i++) {
     var val = data[i][0];
@@ -30,7 +29,6 @@ function highlightCampaigns(campaignData) {
     }
   }
   
-  // Карта колонок по первой строке (номера ТК)
   var headers = data[0]; 
   var tkColMap = {};
   for (var col = 0; col < headers.length; col++) {
@@ -43,6 +41,7 @@ function highlightCampaigns(campaignData) {
     }
   }
 
+  var foundAny = false;
   for (var rk in campaignData) {
     var tks = campaignData[rk];
     var rowIndex = rkRowMap[String(rk).trim()];
@@ -53,10 +52,14 @@ function highlightCampaigns(campaignData) {
         var colIndex = tkColMap[tkNum];
         
         if (colIndex) {
-          // Закрашиваем ячейку
           sheet.getRange(rowIndex, colIndex).setBackground("#00ff00");
+          foundAny = true;
         }
       }
     }
+  }
+  
+  if (!foundAny) {
+    console.error("No matches found for highlighting. RKs: " + Object.keys(campaignData).join(", "));
   }
 }

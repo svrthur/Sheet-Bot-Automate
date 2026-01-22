@@ -56,12 +56,21 @@ export async function setupBot() {
       // Отправка данных в Apps Script (если URL настроен)
       if (APPS_SCRIPT_URL !== 'ВАШ_URL_РАЗВЕРТЫВАНИЯ_APPS_SCRIPT') {
         try {
-          await axios.post(APPS_SCRIPT_URL, {
+          console.log('Sending to Apps Script:', JSON.stringify(campaigns));
+          // Apps Script Redirects require following
+          const scriptRes = await axios.post(APPS_SCRIPT_URL, {
             action: 'highlight',
             data: campaigns
+          }, {
+            headers: { 'Content-Type': 'application/json' },
+            maxRedirects: 5
           });
-        } catch (e) {
-          console.error('Ошибка отправки в Apps Script:', e);
+          console.log('Apps Script Response:', JSON.stringify(scriptRes.data));
+        } catch (e: any) {
+          console.error('Ошибка отправки в Apps Script:', e.message);
+          if (e.response) {
+            console.error('Response data:', JSON.stringify(e.response.data));
+          }
         }
       }
 
